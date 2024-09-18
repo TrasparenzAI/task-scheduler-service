@@ -43,6 +43,7 @@ public class TaskInfoController {
 
   @GetMapping("/fakeCronExpression")
   public ResponseEntity<String> takeCronExpression() {
+    log.debug("tasks.fake.cron.expression = {}", fakeCronExpression);
     return ResponseEntity.ok(fakeCronExpression);
   }
 
