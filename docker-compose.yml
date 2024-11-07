@@ -5,14 +5,14 @@
 
 services:
   task-scheduler-service:
-    image: ghcr.io/cnr-anac/task-scheduler-service:latest
+    #image: ghcr.io/cnr-anac/task-scheduler-service:latest
+    image: criluc/task-scheduler-service:latest
     container_name: task-scheduler-service
     ports:
       - 8080
     environment:
     - spring.docker.compose.enabled=false
     - server.servlet.context-path=/task-scheduler-service
-    #- spring.config.import=optional:configserver:https://dica33.ba.cnr.it/config-service/config
-    #- spring.config.import=optional:configserver:http://172.17.0.1:8888/config
-    #- workflow.cron.url=https://dica33.ba.cnr.it/mockserver/conductor-server/api/workflow
+    - confighost=https://dica33.ba.cnr.it/config-service/config
+    - workflow.cron.url=https://dica33.ba.cnr.it/mockserver/conductor-server/api/workflow
     #- workflow.cron.expression=08 * ? * MON-FRI
