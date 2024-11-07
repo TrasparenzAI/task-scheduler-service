@@ -17,7 +17,17 @@
 package it.cnr.anac.transparency.scheduler.tasks;
 
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.context.ApplicationListener;
@@ -35,13 +45,33 @@ import org.springframework.stereotype.Component;
 @Component
 public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshedEvent>{
 
-  @Scheduled(cron = "${tasks.fake.cron.expression}")
-  void fakeTask() {
-    log.info("Fake task executed");
+  private final WorkflowCronConfig workflowCron; 
+
+  @Scheduled(cron = "0 ${workflow.cron.expression}")
+  void workflowStartTask() {
+
+    log.info("Executing workflow start, url = {}, body = {}", workflowCron.getUrl(), workflowCron.getBody());
+    val client =  HttpClient.newHttpClient();
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(workflowCron.getUrl()))
+          .POST(HttpRequest.BodyPublishers.ofString(workflowCron.getBody()))
+          .build();
+      try {
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        log.info("Conductor response.statusCode = {}, response.body = {}", 
+            response.statusCode(), response.body());
+
+      } catch (IOException | InterruptedException e) {
+        log.error("Problem calling conductor", e);
+      }
+    } catch (URISyntaxException e) {
+      log.error("URI conductor errato", e);
+    }
   }
 
   /**
-   * Questo metodo è necessario per obbligatore lo spring a ricreare il bean con 
+   * Questo metodo è necessario per obbligare lo spring a ricreare il bean con 
    * l'annotazione @scheduled.
    */
   @Override
