@@ -28,6 +28,7 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "workflow.cron")
 public class WorkflowCronConfig {
 
+  private String expression;
   private String url;
   private String body;
 

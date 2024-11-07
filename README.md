@@ -19,6 +19,10 @@ l'url del config-service da utilizzare.
     - confighost:https://dica33.ba.cnr.it/config-service/config
 ```
 
+Le informazioni di configurazione dei cron relativi ai workflow possono essere visualizzate 
+all'url **/tasks/workflowCronConfig.
+
+
 ## 👏 Come Contribuire 
 
 E' possibile contribuire a questo progetto utilizzando le modalità standard della comunità opensource 
