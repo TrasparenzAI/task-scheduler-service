@@ -16,7 +16,7 @@ l'url del config-service da utilizzare.
 
 ```
   environment:
-    - spring.config.import=optional:configserver:https://dica33.ba.cnr.it/config-service/config
+    - confighost:https://dica33.ba.cnr.it/config-service/config
 ```
 
 ## 👏 Come Contribuire 
