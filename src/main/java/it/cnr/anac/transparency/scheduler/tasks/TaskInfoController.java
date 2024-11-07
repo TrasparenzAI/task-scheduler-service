@@ -38,13 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TaskInfoController {
 
-  @Value("${tasks.fake.cron.expression}")
-  private String fakeCronExpression;
+  @Value("${workflow.cron.expression}")
+  private String workflowCronExpression;
 
   @GetMapping("/fakeCronExpression")
   public ResponseEntity<String> takeCronExpression() {
-    log.debug("tasks.fake.cron.expression = {}", fakeCronExpression);
-    return ResponseEntity.ok(fakeCronExpression);
+    log.debug("workflow.fake.cron.expression = {}", workflowCronExpression);
+    return ResponseEntity.ok(workflowCronExpression);
   }
 
 }

@@ -14,21 +14,21 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.scheduler;
+package it.cnr.anac.transparency.scheduler.tasks;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
-/**
- * Task Scheduler Spring Boot Application.
- */
-@EnableScheduling
-@SpringBootApplication
-public class TaskSchedulerServiceApplication {
+import lombok.Data;
 
-  public static void main(String[] args) {
-    SpringApplication.run(TaskSchedulerServiceApplication.class, args);
-  }
+@Data
+@Component
+@Validated
+@ConfigurationProperties(prefix = "workflow.cron")
+public class WorkflowCronConfig {
+
+  private String url;
+  private String body;
 
 }
