@@ -55,6 +55,7 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(workflowCron.getUrl()))
+          .setHeader("Content-Type", "application/json")
           .POST(HttpRequest.BodyPublishers.ofString(workflowCron.getBody()))
           .build();
       try {
