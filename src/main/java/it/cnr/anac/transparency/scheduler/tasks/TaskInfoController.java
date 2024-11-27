@@ -16,12 +16,17 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import java.util.List;
+
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.cnr.anac.transparency.scheduler.conductor.ConductorClient;
+import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
+import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TaskInfoController {
 
   private final WorkflowCronConfig workflowCronConfig;
+  private final ConductorClient conductorClient;
+  private final ConductorService conductorService;
 
   @GetMapping("/workflowCronConfig")
   public ResponseEntity<WorkflowCronConfig> workflowCronConfig() {
@@ -45,4 +52,13 @@ public class TaskInfoController {
     return ResponseEntity.ok(workflowCronConfig);
   }
 
+  @GetMapping("/completedWorkflows")
+  public ResponseEntity<List<WorkflowDto>> completedWorkflows() {
+    return ResponseEntity.ok(conductorClient.completedWorkflows());
+  }
+
+  @GetMapping("/expiredWorkflows")
+  public ResponseEntity<List<WorkflowDto>> expiredWorkflows() {
+    return ResponseEntity.ok(conductorService.expiredWorkflows());
+  }
 }

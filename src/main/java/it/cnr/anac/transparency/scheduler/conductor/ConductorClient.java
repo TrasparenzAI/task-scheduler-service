@@ -14,23 +14,16 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.scheduler;
+package it.cnr.anac.transparency.scheduler.conductor;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.List;
 
-/**
- * Task Scheduler Spring Boot Application.
- */
-@EnableFeignClients
-@EnableScheduling
-@SpringBootApplication
-public class TaskSchedulerServiceApplication {
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 
-  public static void main(String[] args) {
-    SpringApplication.run(TaskSchedulerServiceApplication.class, args);
-  }
+@FeignClient(name = "conductor-client", url = "${workflow.cron.url}")
+public interface ConductorClient {
 
+  @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
+  List<WorkflowDto> completedWorkflows();
 }

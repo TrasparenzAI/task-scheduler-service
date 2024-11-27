@@ -16,21 +16,22 @@
  */
 package it.cnr.anac.transparency.scheduler;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Task Scheduler Spring Boot Application.
- */
-@EnableFeignClients
-@EnableScheduling
-@SpringBootApplication
-public class TaskSchedulerServiceApplication {
+import org.springframework.cloud.context.refresh.ContextRefresher;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-  public static void main(String[] args) {
-    SpringApplication.run(TaskSchedulerServiceApplication.class, args);
-  }
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
+@Component
+public class ConfigRefresher {
+
+  private final ContextRefresher contextRefresher;
+
+  @Scheduled(fixedDelay=10, timeUnit = TimeUnit.MINUTES)
+  public void myRefresher() {
+    contextRefresher.refresh();
+  } 
 }
