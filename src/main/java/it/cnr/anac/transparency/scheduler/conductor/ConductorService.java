@@ -24,15 +24,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Splitter;
-
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Servizio per effettuare le operazioni con il conductor.
+ *
+ * @author Cristian Lucchesi
+ */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ConductorService {
 
-  @Value("${workflow.number.preserve}")
+  @Value("${workflow.number.preserve:12}")
   Integer numberToPreserve;
 
   @Value("${workflow.id.preserve:null}")
@@ -40,6 +47,10 @@ public class ConductorService {
 
   private final ConductorClient conductorClient;
   
+  /**
+   * L'insieme dei workflow id da non cancellare perché sono gli N (numberToPreserve) più recenti,
+   * a cui si aggiungono quelli esplicatati come da non cancellare (idToPreserve).
+   */
   private Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
     val notExpired = 
         workflows.stream()
@@ -53,6 +64,9 @@ public class ConductorService {
     return notExpired;
   };
 
+  /**
+   * Lista dei workflow completati più vecchi.
+   */
   public List<WorkflowDto> expiredWorkflows() {
     val completedWorkflows = conductorClient.completedWorkflows();
     val workflowIdsToPreserve = workflowIdsToPreserve(completedWorkflows);
@@ -61,4 +75,20 @@ public class ConductorService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Cancella sul conductor i workflow completati più vecchi.
+   */
+  public List<WorkflowDto> deleteExpiredWorkflows() {
+    List<WorkflowDto> toDelete = Lists.newArrayList();
+    expiredWorkflows().forEach(w -> {
+      try {
+        conductorClient.deleteWorkflow(w.getWorkflowId());
+        toDelete.add(w);
+        log.info("Eliminato workflow id = {}", w.getWorkflowId());
+      } catch (Exception e) {
+        log.error("Impossibile cancellare il workflow id = {}", w.getWorkflowId());
+      }
+    });
+    return toDelete;
+  }
 }

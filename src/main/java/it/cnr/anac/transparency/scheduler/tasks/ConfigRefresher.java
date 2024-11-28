@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.scheduler;
+package it.cnr.anac.transparency.scheduler.tasks;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +23,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class ConfigRefresher {
@@ -32,6 +34,7 @@ public class ConfigRefresher {
 
   @Scheduled(fixedDelay=10, timeUnit = TimeUnit.MINUTES)
   public void myRefresher() {
+    log.debug("Refreshing context");
     contextRefresher.refresh();
   } 
 }

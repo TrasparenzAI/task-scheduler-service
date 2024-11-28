@@ -19,11 +19,22 @@ package it.cnr.anac.transparency.scheduler.conductor;
 import java.util.List;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
+/**
+ * Client feign per effettuare le operazioni con il conductor.
+ *
+ * @author Cristian Lucchesi
+ */
 @FeignClient(name = "conductor-client", url = "${workflow.cron.url}")
 public interface ConductorClient {
 
   @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
   List<WorkflowDto> completedWorkflows();
+
+  @DeleteMapping("/${id}/remove")
+  void deleteWorkflow(@PathVariable("id") String id);
+
 }
