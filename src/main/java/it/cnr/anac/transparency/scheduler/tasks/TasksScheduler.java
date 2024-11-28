@@ -19,7 +19,7 @@ package it.cnr.anac.transparency.scheduler.tasks;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
-
+import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,7 +45,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshedEvent>{
 
-  private final WorkflowCronConfig workflowCron; 
+  private final WorkflowCronConfig workflowCron;
+  private final ConductorService conductorService;
 
   @Scheduled(cron = "0 ${workflow.cron.expression}")
   void workflowStartTask() {
@@ -71,6 +72,13 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
     }
   }
 
+  @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
+  void deleteExpiredWorflows() {
+    val deleted = conductorService.deleteExpiredWorkflows();
+    log.info("Deleted {} expired workflows", deleted.size());
+  }
+
+  
   /**
    * Questo metodo è necessario per obbligare lo spring a ricreare il bean con 
    * l'annotazione @scheduled.

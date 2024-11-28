@@ -14,23 +14,23 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.scheduler;
+package it.cnr.anac.transparency.scheduler.conductor;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.time.LocalDateTime;
 
-/**
- * Task Scheduler Spring Boot Application.
- */
-@EnableFeignClients
-@EnableScheduling
-@SpringBootApplication
-public class TaskSchedulerServiceApplication {
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-  public static void main(String[] args) {
-    SpringApplication.run(TaskSchedulerServiceApplication.class, args);
-  }
+import lombok.Data;
 
+@Data
+public class WorkflowDto {
+
+  @JsonDeserialize(using = LocalDateTimeFromEpochDeserializer.class)
+  private LocalDateTime createTime; //": 1726055743122,
+  @JsonDeserialize(using = LocalDateTimeFromEpochDeserializer.class)
+  private LocalDateTime updateTime; //": 1726126135420,
+  private String status; //: "COMPLETED",
+  @JsonDeserialize(using = LocalDateTimeFromEpochDeserializer.class)
+  private LocalDateTime endTime; //: 1726126135420,
+  private String workflowId; //: "7eab673f-0d31-4bfc-b2b0-731558ecc32f",
 }

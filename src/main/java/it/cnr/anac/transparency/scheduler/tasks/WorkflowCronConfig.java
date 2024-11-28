@@ -16,19 +16,17 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
-import lombok.Data;
 
 @Data
 @Component
-@Validated
-@ConfigurationProperties(prefix = "workflow.cron")
+@ConfigurationProperties(prefix = "workflow.cron", ignoreUnknownFields=true)
 public class WorkflowCronConfig {
 
   private String expression;
+  private String deleteExpression;
   private String url;
   private String body;
 

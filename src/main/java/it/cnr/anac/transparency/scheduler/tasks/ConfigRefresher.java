@@ -14,23 +14,27 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.scheduler;
+package it.cnr.anac.transparency.scheduler.tasks;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Task Scheduler Spring Boot Application.
- */
-@EnableFeignClients
-@EnableScheduling
-@SpringBootApplication
-public class TaskSchedulerServiceApplication {
+import org.springframework.cloud.context.refresh.ContextRefresher;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-  public static void main(String[] args) {
-    SpringApplication.run(TaskSchedulerServiceApplication.class, args);
-  }
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class ConfigRefresher {
+
+  private final ContextRefresher contextRefresher;
+
+  @Scheduled(fixedDelay=10, timeUnit = TimeUnit.MINUTES)
+  public void myRefresher() {
+    log.debug("Refreshing context");
+    contextRefresher.refresh();
+  } 
 }
