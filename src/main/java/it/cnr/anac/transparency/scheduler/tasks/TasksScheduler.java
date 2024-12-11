@@ -85,6 +85,6 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
    */
   @Override
   public void onApplicationEvent(RefreshScopeRefreshedEvent refreshScopeRefreshedEvent) {
-    log.info("TaskScheduler::onApplicationEvent -> new schedules created");
+    log.debug("TaskScheduler::onApplicationEvent -> new schedules created");
   }
 }
