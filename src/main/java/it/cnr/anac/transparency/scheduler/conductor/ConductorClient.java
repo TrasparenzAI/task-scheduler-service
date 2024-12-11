@@ -34,7 +34,7 @@ public interface ConductorClient {
   @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
   List<WorkflowDto> completedWorkflows();
 
-  @DeleteMapping("/${id}/remove")
+  @DeleteMapping("/{id}/remove")
   void deleteWorkflow(@PathVariable("id") String id);
 
 }
