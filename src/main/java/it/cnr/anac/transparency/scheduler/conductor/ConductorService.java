@@ -86,7 +86,7 @@ public class ConductorService {
         toDelete.add(w);
         log.info("Eliminato workflow id = {}", w.getWorkflowId());
       } catch (Exception e) {
-        log.error("Impossibile cancellare il workflow id = {}", w.getWorkflowId());
+        log.error("Impossibile cancellare il workflow id = {}", w.getWorkflowId(), e);
       }
     });
     return toDelete;
