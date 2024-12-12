@@ -32,9 +32,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ConductorClient {
 
   @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
-  List<WorkflowDto> completedWorkflows();
+  List<WorkflowDto> allWorkflows();
 
-  @DeleteMapping("/{id}/remove")
+  @DeleteMapping("/{id}/remove?archiveWorkflow=false")
   void deleteWorkflow(@PathVariable("id") String id);
 
 }
