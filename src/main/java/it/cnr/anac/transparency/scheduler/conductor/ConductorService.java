@@ -47,6 +47,11 @@ public class ConductorService {
 
   private final ConductorClient conductorClient;
   
+  public List<WorkflowDto> completedWorkflows() {
+    return conductorClient.allWorkflows().stream()
+        .filter(w -> w.getStatus().equals("COMPLETED")).collect(Collectors.toList());
+  }
+
   /**
    * L'insieme dei workflow id da non cancellare perché sono gli N (numberToPreserve) più recenti,
    * a cui si aggiungono quelli esplicatati come da non cancellare (idToPreserve).
@@ -68,7 +73,7 @@ public class ConductorService {
    * Lista dei workflow completati più vecchi.
    */
   public List<WorkflowDto> expiredWorkflows() {
-    val completedWorkflows = conductorClient.completedWorkflows();
+    val completedWorkflows = completedWorkflows();
     val workflowIdsToPreserve = workflowIdsToPreserve(completedWorkflows);
     return completedWorkflows.stream()
         .filter(workflow -> ! workflowIdsToPreserve.contains(workflow.getWorkflowId()))

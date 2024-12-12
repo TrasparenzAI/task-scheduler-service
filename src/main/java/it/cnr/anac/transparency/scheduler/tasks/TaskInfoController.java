@@ -16,20 +16,17 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
+import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import it.cnr.anac.transparency.scheduler.conductor.ConductorClient;
-import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
-import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Controller REST con metodi di utilità per la gestione dei task schedulati.
@@ -44,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 public class TaskInfoController {
 
   private final WorkflowCronConfig workflowCronConfig;
-  private final ConductorClient conductorClient;
   private final ConductorService conductorService;
 
   @GetMapping("/workflowCronConfig")
@@ -55,7 +51,7 @@ public class TaskInfoController {
 
   @GetMapping("/completedWorkflows")
   public ResponseEntity<List<WorkflowDto>> completedWorkflows() {
-    return ResponseEntity.ok(conductorClient.completedWorkflows());
+    return ResponseEntity.ok(conductorService.completedWorkflows());
   }
 
   @GetMapping("/expiredWorkflows")
