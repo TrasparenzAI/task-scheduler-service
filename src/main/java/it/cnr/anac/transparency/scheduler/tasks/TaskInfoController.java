@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Consiglio Nazionale delle Ricerche
+ * Copyright (C) 2025 Consiglio Nazionale delle Ricerche
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU Affero General Public License as
@@ -19,6 +19,8 @@ package it.cnr.anac.transparency.scheduler.tasks;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
 import java.util.List;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -47,6 +49,11 @@ public class TaskInfoController {
   public ResponseEntity<WorkflowCronConfig> workflowCronConfig() {
     log.info("workflowCronConfig = {}", workflowCronConfig);
     return ResponseEntity.ok(workflowCronConfig);
+  }
+
+  @GetMapping("/workflowIdsToPreserveFromConfig")
+  public ResponseEntity<Set<String>> idsToPreserve() {
+    return ResponseEntity.ok(conductorService.workflowIdsToPreserveFromConfig());
   }
 
   @GetMapping("/completedWorkflows")

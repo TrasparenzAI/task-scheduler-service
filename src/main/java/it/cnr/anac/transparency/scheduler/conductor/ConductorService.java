@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Consiglio Nazionale delle Ricerche
+ * Copyright (C) 2025 Consiglio Nazionale delle Ricerche
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU Affero General Public License as
@@ -21,10 +21,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -37,35 +42,41 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@RefreshScope
 public class ConductorService {
 
   @Value("${workflow.number.preserve:12}")
   Integer numberToPreserve;
 
   @Value("${workflow.id.preserve:null}")
-  String idToPreserve;
+  String idsToPreserveFromConfig;
 
   private final ConductorClient conductorClient;
-  
+
   public List<WorkflowDto> completedWorkflows() {
     return conductorClient.allWorkflows().stream()
         .filter(w -> w.getStatus().equals("COMPLETED")).collect(Collectors.toList());
+  }
+
+  public Set<String> workflowIdsToPreserveFromConfig() {
+    return Strings.isNullOrEmpty(idsToPreserveFromConfig) ? 
+        Sets.newHashSet() : ImmutableSet.copyOf(Splitter.on(",").split(idsToPreserveFromConfig));
   }
 
   /**
    * L'insieme dei workflow id da non cancellare perché sono gli N (numberToPreserve) più recenti,
    * a cui si aggiungono quelli esplicatati come da non cancellare (idToPreserve).
    */
-  private Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
+  Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
+    log.info("Numero di workflow da preservare = {}", numberToPreserve);
     val notExpired = 
         workflows.stream()
         .sorted((w1, w2) -> w2.getEndTime().compareTo(w1.getEndTime()))
         .limit(numberToPreserve)
         .map(w -> w.getWorkflowId())
         .collect(Collectors.toSet());
-    if (idToPreserve != null) {
-      Splitter.on(",").split(idToPreserve).forEach(id -> notExpired.add(id));
-    }
+    val toPreserveFromConfig = workflowIdsToPreserveFromConfig();
+    notExpired.addAll(toPreserveFromConfig);
     return notExpired;
   };
 
@@ -74,10 +85,14 @@ public class ConductorService {
    */
   public List<WorkflowDto> expiredWorkflows() {
     val completedWorkflows = completedWorkflows();
+    log.info("Presenti {} workflow completati", completedWorkflows.size());
     val workflowIdsToPreserve = workflowIdsToPreserve(completedWorkflows);
-    return completedWorkflows.stream()
+    log.info("Presenti {} workflow da preservare", workflowIdsToPreserve.size());
+    val expired = completedWorkflows.stream()
         .filter(workflow -> ! workflowIdsToPreserve.contains(workflow.getWorkflowId()))
         .collect(Collectors.toList());
+    log.info("Expired workflow = {}", expired);
+    return expired;
   }
 
   /**
