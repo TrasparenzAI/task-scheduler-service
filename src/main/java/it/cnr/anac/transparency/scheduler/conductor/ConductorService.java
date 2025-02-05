@@ -16,23 +16,21 @@
  */
 package it.cnr.anac.transparency.scheduler.conductor;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.stereotype.Service;
-
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
+import it.cnr.anac.transparency.scheduler.tasks.WorkflowCronConfig;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Service;
 
 /**
  * Servizio per effettuare le operazioni con il conductor.
@@ -51,6 +49,8 @@ public class ConductorService {
   @Value("${workflow.id.preserve:null}")
   String idsToPreserveFromConfig;
 
+  private final WorkflowCronConfig workflowCron;
+  
   private final ConductorClient conductorClient;
 
   public List<WorkflowDto> completedWorkflows() {
@@ -111,4 +111,13 @@ public class ConductorService {
     });
     return toDelete;
   }
+
+  public String startWorkflow() {
+    log.info("Executing workflow start, url = {}, body = {}", workflowCron.getUrl(), workflowCron.getBody());
+    val response = conductorClient.startWorkflow(workflowCron.getBody());
+    log.info("Conductor response.statusCode = {}, response.body = {}", 
+        response.getStatusCode(), response.getBody());
+    return response.getBody();
+  }
+
 }
