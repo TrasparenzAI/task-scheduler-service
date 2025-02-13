@@ -99,17 +99,23 @@ public class ConductorService {
    * Cancella sul conductor i workflow completati più vecchi.
    */
   public List<WorkflowDto> deleteExpiredWorkflows() {
-    List<WorkflowDto> toDelete = Lists.newArrayList();
+    List<WorkflowDto> deleted = Lists.newArrayList();
     expiredWorkflows().forEach(w -> {
       try {
         conductorClient.deleteWorkflow(w.getWorkflowId());
-        toDelete.add(w);
+        deleted.add(w);
         log.info("Eliminato workflow id = {}", w.getWorkflowId());
       } catch (Exception e) {
-        log.error("Impossibile cancellare il workflow id = {}", w.getWorkflowId(), e);
+        log.error("Impossibile cancellare il workflow id = {} dal conductor", w.getWorkflowId(), e);
       }
     });
-    return toDelete;
+    return deleted;
+  }
+
+  public void deleteWorkflow(String workflowId) {
+    log.debug("Elimino il workflow con id = {}", workflowId);
+    conductorClient.deleteWorkflow(workflowId);
+    log.info("Eliminato workflow con id = {}", workflowId);
   }
 
   public String startWorkflow() {
