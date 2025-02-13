@@ -19,6 +19,8 @@ package it.cnr.anac.transparency.scheduler.tasks;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import it.cnr.anac.transparency.scheduler.clients.ResultAggregatorServiceClient;
+import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import java.io.IOException;
 import java.net.URI;
@@ -47,6 +49,8 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
 
   private final WorkflowCronConfig workflowCron;
   private final ConductorService conductorService;
+  private final ResultServiceClient resultServiceClient;
+  private final ResultAggregatorServiceClient resultAggregatorServiceClient;
 
   @Scheduled(cron = "0 ${workflow.cron.expression}")
   void workflowStartTask() {
@@ -75,7 +79,15 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
   void deleteExpiredWorflows() {
     val deleted = conductorService.deleteExpiredWorkflows();
-    log.info("Deleted {} expired workflows", deleted.size());
+    log.info("Deleted {} expired workflows from conductor", deleted.size());
+    deleted.forEach(w -> {
+      resultServiceClient.deleteByWorkflow(w.getWorkflowId());
+      log.info("Deleted results with workflowId = {} from result-service", w.getWorkflowId());
+    });
+    deleted.forEach(w -> {
+      resultAggregatorServiceClient.deleteByWorkflow(w.getWorkflowId());
+      log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", w.getWorkflowId());
+    });
   }
 
   

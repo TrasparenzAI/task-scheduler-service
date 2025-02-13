@@ -16,12 +16,15 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import it.cnr.anac.transparency.scheduler.clients.ResultAggregatorServiceClient;
+import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
 import java.util.List;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -45,6 +49,8 @@ public class TaskInfoController {
 
   private final WorkflowCronConfig workflowCronConfig;
   private final ConductorService conductorService;
+  private final ResultServiceClient resultServiceClient;
+  private final ResultAggregatorServiceClient resultAggregatorServiceClient;
 
   @GetMapping("/workflowCronConfig")
   public ResponseEntity<WorkflowCronConfig> workflowCronConfig() {
@@ -75,6 +81,16 @@ public class TaskInfoController {
   @PostMapping("/startWorkflow")
   public ResponseEntity<String> startWorkflow() {
     return ResponseEntity.ok(conductorService.startWorkflow());
+  }
+
+  @DeleteMapping("/deleteWorkflow")
+  public ResponseEntity<Void> deleteWorkflow(@RequestParam("workflowId") String workflowId) {
+    conductorService.deleteWorkflow(workflowId);
+    val resultDeleted = resultServiceClient.deleteByWorkflow(workflowId);
+    log.info("Eliminati {} risultati dal result service per workflowId = {}", resultDeleted, workflowId);
+    val resultAggregatedDeleted = resultAggregatorServiceClient.deleteByWorkflow(workflowId);
+    log.info("Eliminati {} risultati dal result service aggregator per workflowId = {}", resultAggregatedDeleted, workflowId);
+    return ResponseEntity.ok().build();
   }
 
 }
