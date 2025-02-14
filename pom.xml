@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>it.cnr.anac.transparency.scheduler</groupId>
 	<artifactId>task-scheduler-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<name>task-scheduler-service</name>
 	<description>Task scheduler Service per il progetto TrasparenzAI</description>
 	<url/>
@@ -52,6 +52,10 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

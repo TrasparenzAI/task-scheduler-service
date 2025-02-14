@@ -35,11 +35,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 /**
  * Controller REST con metodi di utilità per la gestione dei task schedulati.
  *
  * @author Cristian Lucchesi
  */
+@SecurityRequirement(name = "bearer_authentication")
 @RefreshScope
 @Slf4j
 @RequiredArgsConstructor
