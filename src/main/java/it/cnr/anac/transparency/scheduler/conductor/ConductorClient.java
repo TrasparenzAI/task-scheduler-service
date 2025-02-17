@@ -16,7 +16,6 @@
  */
 package it.cnr.anac.transparency.scheduler.conductor;
 
-import it.cnr.anac.transparency.scheduler.security.OidcAuthZConfiguration;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -32,8 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  *
  * @author Cristian Lucchesi
  */
-@FeignClient(name = "conductor-client", url = "${workflow.cron.url}", 
-            configuration = OidcAuthZConfiguration.class)
+@FeignClient(name = "conductor-client", url = "${workflow.cron.url}")
 public interface ConductorClient {
 
   @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
