@@ -29,6 +29,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
  */
 @Configuration
 public class OAuth2Config {
+
   /**
    * creates AuthManager in spring context for OAuth token management in InMemory cache.
    *
@@ -39,9 +40,10 @@ public class OAuth2Config {
    */
   @Bean
   public OAuth2AuthorizedClientManager authorizedClientManager(
-      final ClientRegistrationRepository clientRegistrationRepository,
+      final ClientRegistrationRepository clientRegistrationRepository, 
       final OAuth2AuthorizedClientService authorizedClientService) {
-    return new AuthorizedClientServiceOAuth2AuthorizedClientManager(
-        clientRegistrationRepository, authorizedClientService);
+      return new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+          clientRegistrationRepository, authorizedClientService);
   }
+
 }

@@ -1,4 +1,4 @@
-package it.cnr.anac.transparency.scheduler.conductor;
+package it.cnr.anac.transparency.scheduler.clients;
 
 import feign.Logger;
 import org.springframework.context.annotation.Bean;

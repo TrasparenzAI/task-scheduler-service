@@ -17,6 +17,7 @@
 package it.cnr.anac.transparency.scheduler.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -27,22 +28,29 @@ import org.springframework.stereotype.Service;
 /*
  * Vedi https://amithkumarg.medium.com/spring-cloud-openfeign-oauth-2-0-68f75f06836f
  */
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class OAuth2Provider {
 
-  // Using anonymous user principal as its S2S authentication
-  public static final Authentication ANONYMOUS_USER_AUTHENTICATION =
-      new AnonymousAuthenticationToken(
-          "key", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+  // https://amithkumarg.medium.com/spring-cloud-openfeign-oauth-2-0-68f75f06836f
+  private static final Authentication ANONYMOUS_USER_AUTHENTICATION =
+          new AnonymousAuthenticationToken(
+                  "key", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
   private final OAuth2AuthorizedClientManager authorizedClientManager;
 
   public String getAuthenticationToken(final String authZServerName) {
-    final OAuth2AuthorizeRequest request =
-        OAuth2AuthorizeRequest.withClientRegistrationId(authZServerName)
-            .principal(ANONYMOUS_USER_AUTHENTICATION)
-            .build();
-    return "Bearer " + authorizedClientManager.authorize(request).getAccessToken().getTokenValue();
+      try {
+          final OAuth2AuthorizeRequest request =
+                  OAuth2AuthorizeRequest.withClientRegistrationId(authZServerName)
+                          .principal(ANONYMOUS_USER_AUTHENTICATION)
+                          .build();
+
+          return authorizedClientManager.authorize(request).getAccessToken().getTokenValue();
+      } catch ( RuntimeException e) {
+          log.error("Si è verificato un errore durante la richiesta del token client");
+          throw e;
+      }
   }
 }

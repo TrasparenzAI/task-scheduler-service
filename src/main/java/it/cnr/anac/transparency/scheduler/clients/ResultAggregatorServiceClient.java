@@ -20,15 +20,12 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import it.cnr.anac.transparency.scheduler.security.OidcAuthZConfiguration;
-
 /**
  * Client feign per effettuare le operazioni con il result-aggregator-service.
  *
  * @author Cristian Lucchesi
  */
-@FeignClient(name = "result-aggregator-service-client", url = "${transparency.clients.result-aggregator-service.url}", 
-            configuration = OidcAuthZConfiguration.class)
+@FeignClient(name = "result-aggregator-service-client", url = "${transparency.clients.result-aggregator-service.url}")
 public interface ResultAggregatorServiceClient {
 
   @DeleteMapping("/v1/aggregator/geojson")

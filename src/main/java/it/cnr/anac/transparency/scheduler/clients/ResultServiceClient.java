@@ -20,15 +20,12 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import it.cnr.anac.transparency.scheduler.security.OidcAuthZConfiguration;
-
 /**
  * Client feign per effettuare le operazioni con il result-service.
  *
  * @author Cristian Lucchesi
  */
-@FeignClient(name = "result-service-client", url = "${transparency.clients.result-service.url}", 
-            configuration = OidcAuthZConfiguration.class)
+@FeignClient(name = "result-service-client", url = "${transparency.clients.result-service.url}")
 public interface ResultServiceClient {
 
   @DeleteMapping("/v1/results/byWorkflow/{id}")
