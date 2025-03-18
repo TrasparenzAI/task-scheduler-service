@@ -9,7 +9,7 @@
 
 # NOTE: Make sure to verify the contents of the script
 #       you downloaded matches the contents of first-setup.sh
-#       located at https://github.com/cnr-anac/config-service/first-setup.sh
+#       located at https://github.com/cnr-anac/task-scheduler-service/first-setup.sh
 #
 # This script need docker and docker compose plugin to be installed successfully.
 
