@@ -12,13 +12,15 @@ services:
     environment:
     - spring.docker.compose.enabled=false
     - server.servlet.context-path=/task-scheduler-service
-    - confighost=https://dica33.ba.cnr.it/config-service/config
-    - workflow.cron.url=https://dica33.ba.cnr.it/mockserver/conductor-server/api/workflow
+    - confighost=${CONFIG_HOST}
+    - spring.cloud.config.username=${CONFIG_SERVICE_USERNAME}
+    - spring.cloud.config.password=${CONFIG_SERVICE_PASSWORD}
+    #- workflow.cron.url=https://dica33.ba.cnr.it/mockserver/conductor-server/api/workflow
     #- workflow.cron.expression=08 * ? * MON-FRI
     # Generare un Service Account Oidc con questo client-id, oppure cambiare questo valore
     - spring.security.oauth2.client.registration.oidc.client-id=task-scheduler
     # Client Secret da generare nel Identity Provider e impostare qui
-    - spring.security.oauth2.client.registration.oidc.client-secret=client_secret_da_generare
+    - spring.security.oauth2.client.registration.oidc.client-secret=${OIDC_CLIENT_SECRET}
     # URL dell'issuer OIDC da impostare
     - spring.security.oauth2.client.provider.oidc.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
     # - spring.security.oauth2.client.registration.oidc.authorization-grant-type=client_credentials #DEFAULT
@@ -28,5 +30,5 @@ services:
     - spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
     - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai/protocol/openid-connect/certs
     # Configurazione indirizzi dei servizi dove cancellare i risutalti del workflow scaduti
-    - transparency.clients.result-service.url=https://dica33.ba.cnr.it/result-service
-    - transparency.clients.result-aggregator-service.url=https://dica33.ba.cnr.it/result-aggregator-service
+    - transparency.clients.result-service.url=${TRANSPARENCY_RESULT_SERVICE_URL}
+    - transparency.clients.result-aggregator-service.url=${TRANSPARENCY_RESULT_AGGREGATOR_SERVICE_URL}
