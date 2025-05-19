@@ -5,7 +5,7 @@
 
 services:
   task-scheduler-service:
-    image: ghcr.io/cnr-anac/task-scheduler-service:latest
+    image: ghcr.io/trasparenzai/task-scheduler-service:latest
     container_name: task-scheduler-service
     ports:
       - 8080

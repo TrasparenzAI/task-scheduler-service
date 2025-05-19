@@ -53,7 +53,7 @@ Accertati di aver installato docker e il plugin di docker `compose` dove vuoi in
 esegui il comando successivo per un setup di esempio.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/cnr-anac/task-scheduler-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
+curl -fsSL https://raw.githubusercontent.com/trasparenzai/task-scheduler-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
 ```
 
 Collegarsi a http://localhost:8082/swagger-ui/index.html per visualizzare la documentazione degli endpoint REST presenti nel servizio.
@@ -68,4 +68,4 @@ E' possibile contribuire a questo progetto utilizzando le modalità standard del
 Task Scheduler Service è concesso in licenza GNU AFFERO GENERAL PUBLIC LICENSE, come si trova nel file
 [LICENSE][l].
 
-[l]: https://github.com/cnr-anac/public-sites-service/blob/master/LICENSE
+[l]: https://github.com/trasparenzai/public-sites-service/blob/master/LICENSE

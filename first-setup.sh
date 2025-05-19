@@ -2,14 +2,14 @@
 
 # Task Scheduler Service for Linux installation script
 #
-# See https://github.com/cnr-anac/task-scheduler-service/ for more details.
+# See https://github.com/trasparenzai/task-scheduler-service/ for more details.
 #
 # This script is meant for quick & easy install via:
-#   $ curl -fsSL https://raw.githubusercontent.com/cnr-anac/task-scheduler-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
+#   $ curl -fsSL https://raw.githubusercontent.com/trasparenzai/task-scheduler-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
 
 # NOTE: Make sure to verify the contents of the script
 #       you downloaded matches the contents of first-setup.sh
-#       located at https://github.com/cnr-anac/task-scheduler-service/first-setup.sh
+#       located at https://github.com/trasparenzai/task-scheduler-service/first-setup.sh
 #
 # This script need docker and docker compose plugin to be installed successfully.
 
@@ -23,8 +23,8 @@ command -v docker compose version >/dev/null 2>&1 || { echo >&2 "docker compose 
 
 cd $INSTALL_DIR
 
-curl https://raw.githubusercontent.com/cnr-anac/task-scheduler-service/main/docker-compose.yml -o docker-compose.yml
-curl https://raw.githubusercontent.com/cnr-anac/task-scheduler-service/main/.env -o .env
+curl https://raw.githubusercontent.com/trasparenzai/task-scheduler-service/main/docker-compose.yml -o docker-compose.yml
+curl https://raw.githubusercontent.com/trasparenzai/task-scheduler-service/main/.env -o .env
 
 # Avvio del task-scheduler-service 
 docker compose up -d
