@@ -78,7 +78,9 @@ public class TaskInfoController {
 
   @DeleteMapping("/deleteExpiredWorkflows")
   public ResponseEntity<List<WorkflowDto>> deleteExpiredWorkflows() {
-    return ResponseEntity.ok(conductorService.deleteExpiredWorkflows());
+    val workflowDtos = conductorService.expiredWorkflows();
+    conductorService.deleteExpiredWorkflows();
+    return ResponseEntity.ok(workflowDtos);
   }
 
   @PostMapping("/startWorkflow")

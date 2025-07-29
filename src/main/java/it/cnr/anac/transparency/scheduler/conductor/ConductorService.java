@@ -24,12 +24,14 @@ import com.google.common.collect.Sets;
 import it.cnr.anac.transparency.scheduler.tasks.WorkflowCronConfig;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -98,24 +100,17 @@ public class ConductorService {
   /**
    * Cancella sul conductor i workflow completati più vecchi.
    */
-  public List<WorkflowDto> deleteExpiredWorkflows() {
-    List<WorkflowDto> deleted = Lists.newArrayList();
+  @Async
+  public CompletableFuture<Void> deleteExpiredWorkflows() {
     expiredWorkflows().forEach(w -> {
       try {
         conductorClient.deleteWorkflow(w.getWorkflowId());
-        deleted.add(w);
         log.info("Eliminato workflow id = {}", w.getWorkflowId());
       } catch (Exception e) {
         log.error("Impossibile cancellare il workflow id = {} dal conductor", w.getWorkflowId(), e);
       }
     });
-    return deleted;
-  }
-
-  public void deleteWorkflow(String workflowId) {
-    log.debug("Elimino il workflow con id = {}", workflowId);
-    conductorClient.deleteWorkflow(workflowId);
-    log.info("Eliminato workflow con id = {}", workflowId);
+    return CompletableFuture.completedFuture(null);
   }
 
   public String startWorkflow() {
@@ -126,4 +121,15 @@ public class ConductorService {
     return response.getBody();
   }
 
+  @Async
+  public CompletableFuture<Void> deleteWorkflow(String workflowId) {
+    try {
+      log.debug("Elimino il workflow con id = {}", workflowId);
+      conductorClient.deleteWorkflow(workflowId);
+      log.info("Eliminato workflow con id = {}", workflowId);
+    } catch (Exception e) {
+      log.warn("Workflow non eliminato", e);
+    }
+    return CompletableFuture.completedFuture(null);
+  }
 }

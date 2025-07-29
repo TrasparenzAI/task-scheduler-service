@@ -50,7 +50,8 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
 
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
   void deleteExpiredWorflows() {
-    val deleted = conductorService.deleteExpiredWorkflows();
+    val deleted = conductorService.expiredWorkflows();
+    conductorService.deleteExpiredWorkflows();
     log.info("Deleted {} expired workflows from conductor", deleted.size());
     deleted.forEach(w -> {
       resultServiceClient.deleteByWorkflow(w.getWorkflowId());
