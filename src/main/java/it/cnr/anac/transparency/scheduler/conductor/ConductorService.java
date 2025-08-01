@@ -101,7 +101,7 @@ public class ConductorService {
    * Cancella sul conductor i workflow completati più vecchi.
    */
   @Async
-  public CompletableFuture<Void> deleteExpiredWorkflows() {
+  public void deleteExpiredWorkflows() {
     expiredWorkflows().forEach(w -> {
       try {
         conductorClient.deleteWorkflow(w.getWorkflowId());
@@ -110,7 +110,6 @@ public class ConductorService {
         log.error("Impossibile cancellare il workflow id = {} dal conductor", w.getWorkflowId(), e);
       }
     });
-    return CompletableFuture.completedFuture(null);
   }
 
   public String startWorkflow() {
@@ -122,7 +121,7 @@ public class ConductorService {
   }
 
   @Async
-  public CompletableFuture<Void> deleteWorkflow(String workflowId) {
+  public void deleteWorkflow(String workflowId) {
     try {
       log.debug("Elimino il workflow con id = {}", workflowId);
       conductorClient.deleteWorkflow(workflowId);
@@ -130,6 +129,5 @@ public class ConductorService {
     } catch (Exception e) {
       log.warn("Workflow non eliminato", e);
     }
-    return CompletableFuture.completedFuture(null);
   }
 }
