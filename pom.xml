@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>it.cnr.anac.transparency.scheduler</groupId>
 	<artifactId>task-scheduler-service</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>task-scheduler-service</name>
 	<description>Task scheduler Service per il progetto TrasparenzAI</description>
 	<url/>
