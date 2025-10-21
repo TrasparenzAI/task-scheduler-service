@@ -1,0 +1,32 @@
+transparency:
+  clients:
+    result-service:
+      url: http://localhost:8081
+    result-aggregator-service:
+      url: http://localhost:8083
+
+workflow:
+  cron:
+    url: http://localhost:8084/conductor-server/api/workflow
+    expression: 0 15 * * ?
+    deleteExpression: 0 8 ? * MON,TUE,THU,FRI,SUN
+
+spring:
+  cloud:
+    config.enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          test-client: 
+            provider: fake-provider 
+            client-id: test
+            client-secret: test
+            authorization-grant-type: client_credentials
+            scope: internal
+            
+        provider:
+          fake-provider:
+            # Non richiede issuer-uri o authorization-uri per client_credentials, 
+            # ma ha bisogno del token-uri:
+            token-uri: http://localhost:8080/fake-token
