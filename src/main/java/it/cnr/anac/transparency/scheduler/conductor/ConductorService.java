@@ -76,7 +76,7 @@ public class ConductorService {
         workflows.stream()
         .sorted((w1, w2) -> w2.getEndTime().compareTo(w1.getEndTime()))
         .limit(numberToPreserve)
-        .map(w -> w.getWorkflowId())
+        .map(WorkflowDto::getWorkflowId)
         .collect(Collectors.toSet());
     val toPreserveFromConfig = workflowIdsToPreserveFromConfig();
     notExpired.addAll(toPreserveFromConfig);
@@ -104,12 +104,7 @@ public class ConductorService {
   @Async
   public void deleteExpiredWorkflows() {
     expiredWorkflows().forEach(w -> {
-      try {
-        conductorClient.deleteWorkflow(w.getWorkflowId());
-        log.info("Eliminato workflow id = {}", w.getWorkflowId());
-      } catch (Exception e) {
-        log.error("Impossibile cancellare il workflow id = {} dal conductor", w.getWorkflowId(), e);
-      }
+      deleteWorkflow(w.getWorkflowId());
     });
   }
 
@@ -124,11 +119,14 @@ public class ConductorService {
   @Async
   public void deleteWorkflow(String workflowId) {
     try {
-      log.debug("Elimino il workflow con id = {}", workflowId);
+      log.info("Elimino il workflow con id = {}", workflowId);
       conductorClient.deleteWorkflow(workflowId);
       log.info("Eliminato workflow con id = {}", workflowId);
+    } catch (feign.RetryableException e) {
+      log.warn("Timeout raggiunto! Conductor è molto lento nel cancellare il workflow id = {}. " +
+                      "Probabilmente il workflow verrà comunque cancellato senza problemi. ", workflowId);
     } catch (Exception e) {
-      log.warn("Workflow non eliminato", e);
+      log.warn("Workflow id = {} non eliminato", workflowId, e);
     }
   }
 }

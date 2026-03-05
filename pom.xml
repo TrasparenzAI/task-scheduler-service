@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.6</version>
+		<version>3.5.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.cnr.anac.transparency.scheduler</groupId>
 	<artifactId>task-scheduler-service</artifactId>
-	<version>0.2.0</version>
+	<version>0.2.1</version>
 	<name>task-scheduler-service</name>
 	<description>Task scheduler Service per il progetto TrasparenzAI</description>
 	<url/>

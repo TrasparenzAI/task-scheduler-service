@@ -56,8 +56,6 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
     deleted.forEach(w -> {
       resultServiceClient.deleteByWorkflow(w.getWorkflowId());
       log.info("Deleted results with workflowId = {} from result-service", w.getWorkflowId());
-    });
-    deleted.forEach(w -> {
       resultAggregatorServiceClient.deleteByWorkflow(w.getWorkflowId());
       log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", w.getWorkflowId());
     });
