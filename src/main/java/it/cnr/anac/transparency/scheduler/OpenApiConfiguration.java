@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 @OpenAPIDefinition(
     info = @Info(
         title = "Task Scheduler Service OpenAPI",
-        version = "0.1.0",
+        version = "0.3.0",
         description = "OpenAPI per task-scheduler-service")
     )
 @SecuritySchemes(value = {

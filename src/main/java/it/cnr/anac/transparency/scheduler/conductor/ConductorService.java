@@ -67,10 +67,18 @@ public class ConductorService {
   }
 
   /**
+   * L'insieme dei workflow id da non cancellare.
+   */
+  public Set<String> workflowIdsToPreserve() {
+    val completedWorkflows = completedWorkflows();
+    return workflowIdsToPreserve(completedWorkflows);
+  }
+
+  /**
    * L'insieme dei workflow id da non cancellare perché sono gli N (numberToPreserve) più recenti,
    * a cui si aggiungono quelli esplicatati come da non cancellare (idToPreserve).
    */
-  Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
+  public Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
     log.info("Numero di workflow da preservare = {}", numberToPreserve);
     val notExpired = 
         workflows.stream()
