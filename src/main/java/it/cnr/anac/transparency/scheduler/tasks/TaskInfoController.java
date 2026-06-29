@@ -53,6 +53,7 @@ public class TaskInfoController {
 
   private final WorkflowCronConfig workflowCronConfig;
   private final ConductorService conductorService;
+  private final DeleteService deleteService;
   private final ResultServiceClient resultServiceClient;
   private final ResultService resultService;
   private final ResultAggregatorService resultAggregatorService;
@@ -65,12 +66,12 @@ public class TaskInfoController {
 
   @GetMapping("/workflowIdsToPreserveFromConfig")
   public ResponseEntity<Set<String>> idsToPreserveFromConfig() {
-    return ResponseEntity.ok(conductorService.workflowIdsToPreserveFromConfig());
+    return ResponseEntity.ok(deleteService.workflowIdsToPreserveFromConfig());
   }
 
   @GetMapping("/workflowIdsToPreserve")
   public ResponseEntity<Set<String>> idsToPreserve() {
-    return ResponseEntity.ok(conductorService.workflowIdsToPreserve());
+    return ResponseEntity.ok(deleteService.workflowIdsToPreserve());
   }
 
   @GetMapping("/workflowIdsToDeleteOnResultService")
@@ -85,19 +86,19 @@ public class TaskInfoController {
 
   @GetMapping("/completedWorkflows")
   public ResponseEntity<List<WorkflowDto>> completedWorkflows() {
-    return ResponseEntity.ok(conductorService.completedWorkflows());
+    return ResponseEntity.ok(conductorService.completedWorkflowsOnConductor());
   }
 
   @GetMapping("/expiredWorkflows")
-  public ResponseEntity<List<WorkflowDto>> expiredWorkflows() {
-    return ResponseEntity.ok(conductorService.expiredWorkflows());
+  public ResponseEntity<List<String>> expiredWorkflows() {
+    return ResponseEntity.ok(deleteService.expiredWorkflows());
   }
 
   @DeleteMapping("/deleteExpiredWorkflows")
-  public ResponseEntity<List<WorkflowDto>> deleteExpiredWorkflows() {
-    val workflowDtos = conductorService.expiredWorkflows();
-    conductorService.deleteExpiredWorkflows();
-    return ResponseEntity.ok(workflowDtos);
+  public ResponseEntity<List<String>> deleteExpiredWorkflows() {
+    val workflowIds = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor();
+    return ResponseEntity.ok(workflowIds);
   }
 
   @PostMapping("/startWorkflow")

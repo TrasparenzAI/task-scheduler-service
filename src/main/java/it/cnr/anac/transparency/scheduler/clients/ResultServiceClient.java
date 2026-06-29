@@ -37,12 +37,13 @@ public interface ResultServiceClient {
  @GetMapping("/v1/workflows")
  RestPage<ResultWorkflowDto> list(
       @RequestParam(value = "status", required = false) ResultWorkflowDto.WorkflowStatus status,
+      @RequestParam("withoutCodiceIpa") boolean withoutCodiceIpa,
       @RequestParam("page") int page,
       @RequestParam("size") int size,
       @RequestParam("sort") String sort);
   default RestPage<ResultWorkflowDto> list(
       Optional<ResultWorkflowDto.WorkflowStatus> status) {
-    return list(status.orElse(null), 0, 1000, "id");
+    return list(status.orElse(null), true, 0, 1000, "id");
   }
 
   @DeleteMapping("/v1/results/byWorkflow/{id}")

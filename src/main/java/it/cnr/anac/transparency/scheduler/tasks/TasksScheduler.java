@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshedEvent>{
 
+  private final DeleteService deleteService;
   private final ConductorService conductorService;
   private final ResultServiceClient resultServiceClient;
   private final ResultAggregatorServiceClient resultAggregatorServiceClient;
@@ -54,14 +55,14 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
 
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
   void deleteExpiredWorflows() {
-    val deleted = conductorService.expiredWorkflows();
-    conductorService.deleteExpiredWorkflows();
+    val deleted = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor();
     log.info("Deleted {} expired workflows from conductor", deleted.size());
-    deleted.forEach(w -> {
-      resultServiceClient.deleteByWorkflow(w.getWorkflowId());
-      log.info("Deleted results with workflowId = {} from result-service", w.getWorkflowId());
-      resultServiceAggregatorService.deleteByWorkflow(w.getWorkflowId());
-      log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", w.getWorkflowId());
+    deleted.forEach(workflowId -> {
+      resultServiceClient.deleteByWorkflow(workflowId);
+      log.info("Deleted results with workflowId = {} from result-service", workflowId);
+      resultServiceAggregatorService.deleteByWorkflow(workflowId);
+      log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", workflowId);
     });
   }
 
