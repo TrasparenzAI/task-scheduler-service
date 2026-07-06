@@ -55,7 +55,7 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
   void deleteExpiredWorflows() {
     val deleted = deleteService.expiredWorkflows();
-    deleteService.deleteExpiredWorkflowsOnConductor();
+    deleteService.deleteExpiredWorkflowsOnConductor(deleted);
     log.info("Deleted {} expired workflows from conductor", deleted.size());
     deleted.forEach(workflowId -> {
       resultServiceClient.deleteByWorkflow(workflowId);
@@ -65,19 +65,12 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
     });
   }
 
-  //Ci sono stati dei casi di workflow che sono stati cancellati dal conductor, ma ancora presenti nel result-service
-  @Scheduled(cron = "0 ${workflow.cron.deleteOrphans.expression}")
-  void deleteOrphanExpiredWorkflowsOnResultService() {
-    resultService.deleteExpiredWorkflows();
-    log.info("Deleting expired workflows");
-  }
-
   // Workflow completati nel Conductor che non hanno una corrispondenza nel result-service
   @Scheduled(cron = "0 ${workflow.cron.deleteConductorOrphans.expression}")
   void deleteConductorOrphanWorkflows() {
     val orphans = deleteService.conductorOnlyWorkflows();
     log.info("Trovati {} workflow orfani nel Conductor, avvio cancellazione", orphans.size());
-    deleteService.deleteConductorOnlyWorkflows();
+    deleteService.deleteConductorOnlyWorkflows(orphans);
   }
 
   /**

@@ -10,6 +10,8 @@ workflow:
     url: http://localhost:8084/conductor-server/api/workflow
     expression: 0 15 * * ?
     deleteExpression: 0 8 ? * MON,TUE,THU,FRI,SUN
+    deleteConductorOrphans:
+      expression: 0 10 ? * MON,TUE,THU,FRI
 
 spring:
   cloud:

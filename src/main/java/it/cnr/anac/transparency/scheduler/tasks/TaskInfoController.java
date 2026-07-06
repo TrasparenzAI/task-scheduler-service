@@ -79,11 +79,6 @@ public class TaskInfoController {
     return resultService.workflowsIdsToDelete();
   }
 
-  @DeleteMapping("/deleteExpiredWorkflowOnResultService")
-  public ResponseEntity<Integer> deleteExpiredWorkflowOnResultService() {
-    return ResponseEntity.ok(resultService.deleteExpiredWorkflows().size());
-  }
-
   @GetMapping("/completedWorkflows")
   public ResponseEntity<List<WorkflowDto>> completedWorkflows() {
     return ResponseEntity.ok(conductorService.completedWorkflowsOnConductor());
@@ -97,7 +92,7 @@ public class TaskInfoController {
   @DeleteMapping("/deleteExpiredWorkflows")
   public ResponseEntity<List<String>> deleteExpiredWorkflows() {
     val workflowIds = deleteService.expiredWorkflows();
-    deleteService.deleteExpiredWorkflowsOnConductor();
+    deleteService.deleteExpiredWorkflowsOnConductor(workflowIds);
     return ResponseEntity.ok(workflowIds);
   }
 
@@ -109,7 +104,7 @@ public class TaskInfoController {
   @DeleteMapping("/deleteConductorOnlyWorkflows")
   public ResponseEntity<List<String>> deleteConductorOnlyWorkflows() {
     val orphans = deleteService.conductorOnlyWorkflows();
-    deleteService.deleteConductorOnlyWorkflows();
+    deleteService.deleteConductorOnlyWorkflows(orphans);
     return ResponseEntity.ok(orphans);
   }
 

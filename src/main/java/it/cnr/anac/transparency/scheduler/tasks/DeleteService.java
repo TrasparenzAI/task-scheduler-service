@@ -109,8 +109,8 @@ public class DeleteService {
      * Cancella sul conductor i workflow completati più vecchi.
      */
     @Async
-    public void deleteExpiredWorkflowsOnConductor() {
-        expiredWorkflows().forEach(conductorService::deleteWorkflow);
+    public void deleteExpiredWorkflowsOnConductor(List<String> expiredWorkflowIds) {
+        expiredWorkflowIds.forEach(conductorService::deleteWorkflow);
     }
 
     /**
@@ -134,7 +134,7 @@ public class DeleteService {
      * Cancella dal Conductor i workflow completati non presenti nel result-service.
      */
     @Async
-    public void deleteConductorOnlyWorkflows() {
-        conductorOnlyWorkflows().forEach(conductorService::deleteWorkflow);
+    public void deleteConductorOnlyWorkflows(List<String> conductorOnlyWorkflowIds) {
+        conductorOnlyWorkflowIds.forEach(conductorService::deleteWorkflow);
     }
 }
