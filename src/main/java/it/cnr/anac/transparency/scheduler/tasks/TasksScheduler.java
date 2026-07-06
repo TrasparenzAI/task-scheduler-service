@@ -16,7 +16,6 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
-import it.cnr.anac.transparency.scheduler.clients.ResultAggregatorServiceClient;
 import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
@@ -24,6 +23,7 @@ import it.cnr.anac.transparency.scheduler.result.ResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.context.ApplicationListener;
@@ -44,7 +44,6 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
   private final DeleteService deleteService;
   private final ConductorService conductorService;
   private final ResultServiceClient resultServiceClient;
-  private final ResultAggregatorServiceClient resultAggregatorServiceClient;
   private final ResultAggregatorService resultServiceAggregatorService;
   private final ResultService resultService;
 
@@ -73,12 +72,20 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
     log.info("Deleting expired workflows");
   }
 
+  // Workflow completati nel Conductor che non hanno una corrispondenza nel result-service
+  @Scheduled(cron = "0 ${workflow.cron.deleteConductorOrphans.expression}")
+  void deleteConductorOrphanWorkflows() {
+    val orphans = deleteService.conductorOnlyWorkflows();
+    log.info("Trovati {} workflow orfani nel Conductor, avvio cancellazione", orphans.size());
+    deleteService.deleteConductorOnlyWorkflows();
+  }
+
   /**
    * Questo metodo è necessario per obbligare lo spring a ricreare il bean con 
    * l'annotazione @scheduled.
    */
   @Override
-  public void onApplicationEvent(RefreshScopeRefreshedEvent refreshScopeRefreshedEvent) {
+  public void onApplicationEvent(@NonNull RefreshScopeRefreshedEvent refreshScopeRefreshedEvent) {
     log.debug("TaskScheduler::onApplicationEvent -> new schedules created");
   }
 }

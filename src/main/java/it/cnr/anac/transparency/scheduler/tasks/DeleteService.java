@@ -20,8 +20,10 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
+import it.cnr.anac.transparency.scheduler.result.ResultWorkflowDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -30,6 +32,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,7 @@ public class DeleteService {
     String idsToPreserveFromConfig;
 
     private final ConductorService conductorService;
+    private final ResultServiceClient resultServiceClient;
 
     public Set<String> workflowIdsToPreserveFromConfig() {
         return Strings.isNullOrEmpty(idsToPreserveFromConfig) ?
@@ -52,42 +56,50 @@ public class DeleteService {
     }
 
     /**
+     * Lista dei workflow generali (senza codiceIpa) completati presenti nel result-service.
+     */
+    public List<ResultWorkflowDto> completedGeneralWorkflowsOnResultService() {
+        return resultServiceClient.list(Optional.of(ResultWorkflowDto.WorkflowStatus.COMPLETED)).getContent();
+    }
+
+    /**
      * L'insieme dei workflow id da non cancellare perché sono gli N (numberToPreserve) più recenti,
      * a cui si aggiungono quelli esplicatati come da non cancellare (idToPreserve).
+     * Usa i workflow generali (senza codiceIpa) del result-service come sorgente.
      */
-    public Set<String> workflowIdsToPreserve(List<WorkflowDto> workflows) {
+    public Set<String> workflowIdsToPreserve(List<ResultWorkflowDto> workflows) {
         log.info("Numero di workflow da preservare = {}", numberToPreserve);
         val notExpired =
                 workflows.stream()
                         .sorted((w1, w2) -> w2.getEndTime().compareTo(w1.getEndTime()))
                         .limit(numberToPreserve)
-                        .map(WorkflowDto::getWorkflowId)
+                        .map(ResultWorkflowDto::getWorkflowId)
                         .collect(Collectors.toSet());
         val toPreserveFromConfig = workflowIdsToPreserveFromConfig();
         notExpired.addAll(toPreserveFromConfig);
         return notExpired;
-    };
+    }
 
     /**
      * L'insieme dei workflow id da non cancellare.
      */
     public Set<String> workflowIdsToPreserve() {
-        val completedWorkflows = conductorService.completedWorkflowsOnConductor();
-        return workflowIdsToPreserve(completedWorkflows);
+        val completedGeneralWorkflows = completedGeneralWorkflowsOnResultService();
+        return workflowIdsToPreserve(completedGeneralWorkflows);
     }
 
-
     /**
-     * Lista dei workflow completati più vecchi.
+     * Lista dei workflow completati più vecchi da cancellare.
+     * La sorgente sono i workflow generali (senza codiceIpa) presenti nel result-service.
      */
     public List<String> expiredWorkflows() {
-        val completedWorkflows = conductorService.completedWorkflowsOnConductor();
-        log.info("Presenti {} workflow completati", completedWorkflows.size());
-        val workflowIdsToPreserve = workflowIdsToPreserve(completedWorkflows);
+        val completedGeneralWorkflows = completedGeneralWorkflowsOnResultService();
+        log.info("Presenti {} workflow completati generali nel result-service", completedGeneralWorkflows.size());
+        val workflowIdsToPreserve = workflowIdsToPreserve(completedGeneralWorkflows);
         log.info("Presenti {} workflow da preservare", workflowIdsToPreserve.size());
-        val expired = completedWorkflows.stream()
-                .map(WorkflowDto::getWorkflowId)
-                .filter(workflowId -> ! workflowIdsToPreserve.contains(workflowId))
+        val expired = completedGeneralWorkflows.stream()
+                .map(ResultWorkflowDto::getWorkflowId)
+                .filter(workflowId -> !workflowIdsToPreserve.contains(workflowId))
                 .collect(Collectors.toList());
         log.info("Expired workflow = {}", expired);
         return expired;
@@ -99,5 +111,30 @@ public class DeleteService {
     @Async
     public void deleteExpiredWorkflowsOnConductor() {
         expiredWorkflows().forEach(conductorService::deleteWorkflow);
+    }
+
+    /**
+     * Lista dei workflow completati nel Conductor non presenti nel result-service.
+     * Questi sono orfani lato Conductor che non hanno mai prodotto risultati.
+     */
+    public List<String> conductorOnlyWorkflows() {
+        val conductorWorkflows = conductorService.completedWorkflowsOnConductor();
+        log.info("Presenti {} workflow completati nel Conductor", conductorWorkflows.size());
+        val resultServiceWorkflowIds = resultServiceClient.list(Optional.empty()).getContent()
+                .stream().map(ResultWorkflowDto::getWorkflowId).collect(Collectors.toSet());
+        val conductorOnly = conductorWorkflows.stream()
+                .map(WorkflowDto::getWorkflowId)
+                .filter(workflowId -> !resultServiceWorkflowIds.contains(workflowId))
+                .collect(Collectors.toList());
+        log.info("Workflow orfani nel Conductor (non presenti nel result-service) = {}", conductorOnly);
+        return conductorOnly;
+    }
+
+    /**
+     * Cancella dal Conductor i workflow completati non presenti nel result-service.
+     */
+    @Async
+    public void deleteConductorOnlyWorkflows() {
+        conductorOnlyWorkflows().forEach(conductorService::deleteWorkflow);
     }
 }

@@ -16,8 +16,12 @@
  */
 package it.cnr.anac.transparency.scheduler.result;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import it.cnr.anac.transparency.scheduler.conductor.LocalDateTimeFromEpochDeserializer;
 import lombok.Data;
 import lombok.ToString;
+
+import java.time.LocalDateTime;
 
 /**
  * Data transfer object per le informazioni relative alla creazione di un workflow.
@@ -35,9 +39,12 @@ public class ResultWorkflowDto {
         PAUSED
     }
 
+    private Long id;
     private String workflowId;
     private String codiceIpa;
     private String rootRule;
     private WorkflowStatus status;
+    @JsonDeserialize(using = LocalDateTimeFromEpochDeserializer.class)
+    private LocalDateTime endTime;
 
 }

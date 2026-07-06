@@ -101,6 +101,18 @@ public class TaskInfoController {
     return ResponseEntity.ok(workflowIds);
   }
 
+  @GetMapping("/conductorOnlyWorkflows")
+  public ResponseEntity<List<String>> conductorOnlyWorkflows() {
+    return ResponseEntity.ok(deleteService.conductorOnlyWorkflows());
+  }
+
+  @DeleteMapping("/deleteConductorOnlyWorkflows")
+  public ResponseEntity<List<String>> deleteConductorOnlyWorkflows() {
+    val orphans = deleteService.conductorOnlyWorkflows();
+    deleteService.deleteConductorOnlyWorkflows();
+    return ResponseEntity.ok(orphans);
+  }
+
   @PostMapping("/startWorkflow")
   public ResponseEntity<String> startWorkflow() {
     return ResponseEntity.ok(conductorService.startWorkflow());
