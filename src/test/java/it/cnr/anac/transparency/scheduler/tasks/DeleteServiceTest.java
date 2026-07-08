@@ -182,6 +182,9 @@ class DeleteServiceTest {
 
     @Test
     void deleteExpiredWorkflowsOnConductor_callsDeleteOnlyForExpiredWorkflows() {
+        when(conductorService.completedWorkflowsOnConductor())
+                .thenReturn(List.of(conductorWorkflow("wf-oldest")));
+
         deleteService.deleteExpiredWorkflowsOnConductor(List.of("wf-oldest"), 1);
 
         verify(conductorService).deleteWorkflow("wf-oldest");

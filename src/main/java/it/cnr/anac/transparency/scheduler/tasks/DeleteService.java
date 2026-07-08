@@ -113,11 +113,16 @@ public class DeleteService {
      */
     @Async
     public void deleteExpiredWorkflowsOnConductor(List<String> expiredWorkflowIds, Integer deleteMax) {
-        log.info("{} expired workflows to be delete from Conductor. Deleting just {} workflows",
+        log.info("{} expired workflows to be delete from Conductor. Trying to delete just {} workflows",
                 expiredWorkflowIds.size(), deleteMax);
-        expiredWorkflowIds.stream().limit(deleteMax).forEach(conductorService::deleteWorkflow);
+        val conductorWorkflowIds =
+                conductorService.completedWorkflowsOnConductor().stream()
+                        .map(WorkflowDto::getWorkflowId).collect(Collectors.toSet());
+        expiredWorkflowIds.stream().filter(conductorWorkflowIds::contains).
+                limit(deleteMax).forEach(conductorService::deleteWorkflow);
     }
 
+    @Async
     public void deleteExpiredWorkflowsOnResultService(List<String> expiredWorkflowIds, Integer deleteMax) {
         expiredWorkflowIds.stream().limit(deleteMax).forEach(workflowId -> {
             resultServiceClient.deleteByWorkflow(workflowId);
