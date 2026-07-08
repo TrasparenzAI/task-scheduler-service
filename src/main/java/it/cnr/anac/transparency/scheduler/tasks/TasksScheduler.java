@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Consiglio Nazionale delle Ricerche
+ * Copyright (C) 2026 Consiglio Nazionale delle Ricerche
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU Affero General Public License as
@@ -16,12 +16,16 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
-import it.cnr.anac.transparency.scheduler.clients.ResultAggregatorServiceClient;
+import com.google.common.base.Joiner;
 import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
+import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
+import it.cnr.anac.transparency.scheduler.result.ResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.context.ApplicationListener;
@@ -39,9 +43,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshedEvent>{
 
+  private final DeleteService deleteService;
   private final ConductorService conductorService;
   private final ResultServiceClient resultServiceClient;
-  private final ResultAggregatorServiceClient resultAggregatorServiceClient;
+  private final ResultAggregatorService resultServiceAggregatorService;
+  private final ResultService resultService;
+
+  @Value(value = "${workflow.cron.deleteConductorOrphans.enabled:-false}")
+  boolean deleteConductorOrphansEnabled = false;
+  @Value(value = "${workflow.cron.deleteMax:-1}")
+  Integer deleteMax = 1;
 
   @Scheduled(cron = "0 ${workflow.cron.expression}")
   void workflowStartTask() {
@@ -49,25 +60,31 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
   }
 
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
-  void deleteExpiredWorflows() {
-    val deleted = conductorService.expiredWorkflows();
-    conductorService.deleteExpiredWorkflows();
-    log.info("Deleted {} expired workflows from conductor", deleted.size());
-    deleted.forEach(w -> {
-      resultServiceClient.deleteByWorkflow(w.getWorkflowId());
-      log.info("Deleted results with workflowId = {} from result-service", w.getWorkflowId());
-      resultAggregatorServiceClient.deleteByWorkflow(w.getWorkflowId());
-      log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", w.getWorkflowId());
-    });
+  void deleteExpiredWorkflows() {
+    val deleted = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor(deleted, deleteMax);
+    deleteService.deleteExpiredWorkflowsOnResultService(deleted, deleteMax);
   }
 
-  
+  // Workflow completati nel Conductor che non hanno una corrispondenza nel result-service
+  @Scheduled(cron = "0 ${workflow.cron.deleteConductorOrphans.expression}")
+  void deleteConductorOrphanWorkflows() {
+    val orphans = deleteService.conductorOnlyWorkflows();
+    log.info("Trovati {} workflow orfani nel Conductor", orphans.size());
+    log.info("Workflow da cancellare id = {}", Joiner.on(",").join(orphans));
+    if (deleteConductorOrphansEnabled) {
+      deleteService.deleteConductorOnlyWorkflows(orphans);
+    } else {
+      log.info("Cancellazione workflow orfani disabilitata");
+    }
+  }
+
   /**
    * Questo metodo è necessario per obbligare lo spring a ricreare il bean con 
    * l'annotazione @scheduled.
    */
   @Override
-  public void onApplicationEvent(RefreshScopeRefreshedEvent refreshScopeRefreshedEvent) {
+  public void onApplicationEvent(@NonNull RefreshScopeRefreshedEvent refreshScopeRefreshedEvent) {
     log.debug("TaskScheduler::onApplicationEvent -> new schedules created");
   }
 }

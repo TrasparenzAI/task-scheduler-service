@@ -16,13 +16,15 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
-import it.cnr.anac.transparency.scheduler.clients.ResultAggregatorServiceClient;
 import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
 import java.util.List;
 import java.util.Set;
 
+import it.cnr.anac.transparency.scheduler.result.ResultService;
+import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +54,10 @@ public class TaskInfoController {
 
   private final WorkflowCronConfig workflowCronConfig;
   private final ConductorService conductorService;
+  private final DeleteService deleteService;
   private final ResultServiceClient resultServiceClient;
-  private final ResultAggregatorServiceClient resultAggregatorServiceClient;
+  private final ResultService resultService;
+  private final ResultAggregatorService resultAggregatorService;
 
   @GetMapping("/workflowCronConfig")
   public ResponseEntity<WorkflowCronConfig> workflowCronConfig() {
@@ -62,25 +66,54 @@ public class TaskInfoController {
   }
 
   @GetMapping("/workflowIdsToPreserveFromConfig")
+  public ResponseEntity<Set<String>> idsToPreserveFromConfig() {
+    return ResponseEntity.ok(deleteService.workflowIdsToPreserveFromConfig());
+  }
+
+  @GetMapping("/workflowIdsToPreserve")
   public ResponseEntity<Set<String>> idsToPreserve() {
-    return ResponseEntity.ok(conductorService.workflowIdsToPreserveFromConfig());
+    return ResponseEntity.ok(deleteService.workflowIdsToPreserve());
+  }
+
+  @GetMapping("/workflowIdsToDeleteOnResultService")
+  public Set<String> workflowsIdsToDeleteOnResultService() {
+    return resultService.workflowsIdsToDelete();
   }
 
   @GetMapping("/completedWorkflows")
   public ResponseEntity<List<WorkflowDto>> completedWorkflows() {
-    return ResponseEntity.ok(conductorService.completedWorkflows());
+    return ResponseEntity.ok(conductorService.completedWorkflowsOnConductor());
   }
 
   @GetMapping("/expiredWorkflows")
-  public ResponseEntity<List<WorkflowDto>> expiredWorkflows() {
-    return ResponseEntity.ok(conductorService.expiredWorkflows());
+  public ResponseEntity<List<String>> expiredWorkflows() {
+    return ResponseEntity.ok(deleteService.expiredWorkflows());
   }
 
-  @DeleteMapping("/deleteExpiredWorkflows")
-  public ResponseEntity<List<WorkflowDto>> deleteExpiredWorkflows() {
-    val workflowDtos = conductorService.expiredWorkflows();
-    conductorService.deleteExpiredWorkflows();
-    return ResponseEntity.ok(workflowDtos);
+  @DeleteMapping("/deleteExpiredWorkflowsOnResultService")
+  public ResponseEntity<List<String>> deleteExpiredWorkflowsOnResultService(@NotNull @RequestParam("deleteMax") Integer deleteMax) {
+    val workflowIds = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnResultService(workflowIds, deleteMax);
+    return ResponseEntity.ok(workflowIds);
+  }
+
+  @DeleteMapping("/deleteExpiredWorkflowsOnConductor")
+  public ResponseEntity<List<String>> deleteExpiredWorkflowsOnConductor(@NotNull @RequestParam("deleteMax") Integer deleteMax) {
+    val workflowIds = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor(workflowIds, deleteMax);
+    return ResponseEntity.ok(workflowIds);
+  }
+
+  @GetMapping("/conductorOnlyWorkflows")
+  public ResponseEntity<List<String>> conductorOnlyWorkflows() {
+    return ResponseEntity.ok(deleteService.conductorOnlyWorkflows());
+  }
+
+  @DeleteMapping("/deleteConductorOnlyWorkflows")
+  public ResponseEntity<List<String>> deleteConductorOnlyWorkflows() {
+    val orphans = deleteService.conductorOnlyWorkflows();
+    deleteService.deleteConductorOnlyWorkflows(orphans);
+    return ResponseEntity.ok(orphans);
   }
 
   @PostMapping("/startWorkflow")
@@ -93,7 +126,7 @@ public class TaskInfoController {
     conductorService.deleteWorkflow(workflowId);
     val resultDeleted = resultServiceClient.deleteByWorkflow(workflowId);
     log.info("Eliminati {} risultati dal result service per workflowId = {}", resultDeleted, workflowId);
-    val resultAggregatedDeleted = resultAggregatorServiceClient.deleteByWorkflow(workflowId);
+    val resultAggregatedDeleted = resultAggregatorService.deleteByWorkflow(workflowId);
     log.info("Eliminati {} risultati dal result service aggregator per workflowId = {}", resultAggregatedDeleted, workflowId);
     return ResponseEntity.ok().build();
   }
