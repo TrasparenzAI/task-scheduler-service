@@ -61,9 +61,9 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
 
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
   void deleteExpiredWorkflows() {
-    val deleted = deleteService.expiredWorkflows();
-    deleteService.deleteExpiredWorkflowsOnConductor(deleted, deleteMax);
-    deleteService.deleteExpiredWorkflowsOnResultService(deleted, deleteMax);
+    val toDelete = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor(toDelete, deleteMax);
+    deleteService.deleteExpiredWorkflowsOnResultService(toDelete, deleteMax);
   }
 
   // Workflow completati nel Conductor che non hanno una corrispondenza nel result-service
