@@ -16,6 +16,7 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import com.google.common.base.Joiner;
 import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.context.ApplicationListener;
@@ -47,30 +49,34 @@ public class TasksScheduler implements ApplicationListener<RefreshScopeRefreshed
   private final ResultAggregatorService resultServiceAggregatorService;
   private final ResultService resultService;
 
+  @Value(value = "${workflow.cron.deleteConductorOrphans.enabled:-false}")
+  boolean deleteConductorOrphansEnabled = false;
+  @Value(value = "${workflow.cron.deleteMax:-1}")
+  Integer deleteMax = 1;
+
   @Scheduled(cron = "0 ${workflow.cron.expression}")
   void workflowStartTask() {
     conductorService.startWorkflow();
   }
 
   @Scheduled(cron = "0 ${workflow.cron.deleteExpression}")
-  void deleteExpiredWorflows() {
+  void deleteExpiredWorkflows() {
     val deleted = deleteService.expiredWorkflows();
-    deleteService.deleteExpiredWorkflowsOnConductor(deleted);
-    log.info("Deleted {} expired workflows from conductor", deleted.size());
-    deleted.forEach(workflowId -> {
-      resultServiceClient.deleteByWorkflow(workflowId);
-      log.info("Deleted results with workflowId = {} from result-service", workflowId);
-      resultServiceAggregatorService.deleteByWorkflow(workflowId);
-      log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", workflowId);
-    });
+    deleteService.deleteExpiredWorkflowsOnConductor(deleted, deleteMax);
+    deleteService.deleteExpiredWorkflowsOnResultService(deleted, deleteMax);
   }
 
   // Workflow completati nel Conductor che non hanno una corrispondenza nel result-service
   @Scheduled(cron = "0 ${workflow.cron.deleteConductorOrphans.expression}")
   void deleteConductorOrphanWorkflows() {
     val orphans = deleteService.conductorOnlyWorkflows();
-    log.info("Trovati {} workflow orfani nel Conductor, avvio cancellazione", orphans.size());
-    deleteService.deleteConductorOnlyWorkflows(orphans);
+    log.info("Trovati {} workflow orfani nel Conductor", orphans.size());
+    log.info("Workflow da cancellare id = {}", Joiner.on(",").join(orphans));
+    if (deleteConductorOrphansEnabled) {
+      deleteService.deleteConductorOnlyWorkflows(orphans);
+    } else {
+      log.info("Cancellazione workflow orfani disabilitata");
+    }
   }
 
   /**

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import it.cnr.anac.transparency.scheduler.result.ResultService;
 import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -89,10 +90,17 @@ public class TaskInfoController {
     return ResponseEntity.ok(deleteService.expiredWorkflows());
   }
 
-  @DeleteMapping("/deleteExpiredWorkflows")
-  public ResponseEntity<List<String>> deleteExpiredWorkflows() {
+  @DeleteMapping("/deleteExpiredWorkflowsOnResultService")
+  public ResponseEntity<List<String>> deleteExpiredWorkflowsOnResultService(@NotNull @RequestParam("deleteMax") Integer deleteMax) {
     val workflowIds = deleteService.expiredWorkflows();
-    deleteService.deleteExpiredWorkflowsOnConductor(workflowIds);
+    deleteService.deleteExpiredWorkflowsOnResultService(workflowIds, deleteMax);
+    return ResponseEntity.ok(workflowIds);
+  }
+
+  @DeleteMapping("/deleteExpiredWorkflowsOnConductor")
+  public ResponseEntity<List<String>> deleteExpiredWorkflowsOnConductor(@NotNull @RequestParam("deleteMax") Integer deleteMax) {
+    val workflowIds = deleteService.expiredWorkflows();
+    deleteService.deleteExpiredWorkflowsOnConductor(workflowIds, deleteMax);
     return ResponseEntity.ok(workflowIds);
   }
 

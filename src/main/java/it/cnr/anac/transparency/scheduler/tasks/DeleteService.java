@@ -16,6 +16,7 @@
  */
 package it.cnr.anac.transparency.scheduler.tasks;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -23,6 +24,7 @@ import com.google.common.collect.Sets;
 import it.cnr.anac.transparency.scheduler.clients.ResultServiceClient;
 import it.cnr.anac.transparency.scheduler.conductor.ConductorService;
 import it.cnr.anac.transparency.scheduler.conductor.WorkflowDto;
+import it.cnr.anac.transparency.scheduler.result.ResultAggregatorService;
 import it.cnr.anac.transparency.scheduler.result.ResultWorkflowDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +51,7 @@ public class DeleteService {
 
     private final ConductorService conductorService;
     private final ResultServiceClient resultServiceClient;
+    private final ResultAggregatorService resultServiceAggregatorService;
 
     public Set<String> workflowIdsToPreserveFromConfig() {
         return Strings.isNullOrEmpty(idsToPreserveFromConfig) ?
@@ -109,8 +112,19 @@ public class DeleteService {
      * Cancella sul conductor i workflow completati più vecchi.
      */
     @Async
-    public void deleteExpiredWorkflowsOnConductor(List<String> expiredWorkflowIds) {
-        expiredWorkflowIds.forEach(conductorService::deleteWorkflow);
+    public void deleteExpiredWorkflowsOnConductor(List<String> expiredWorkflowIds, Integer deleteMax) {
+        log.info("{} expired workflows to be delete from Conductor. Deleting just {} workflows",
+                expiredWorkflowIds.size(), deleteMax);
+        expiredWorkflowIds.stream().limit(deleteMax).forEach(conductorService::deleteWorkflow);
+    }
+
+    public void deleteExpiredWorkflowsOnResultService(List<String> expiredWorkflowIds, Integer deleteMax) {
+        expiredWorkflowIds.stream().limit(deleteMax).forEach(workflowId -> {
+            resultServiceClient.deleteByWorkflow(workflowId);
+            log.info("Deleted results with workflowId = {} from result-service", workflowId);
+            resultServiceAggregatorService.deleteByWorkflow(workflowId);
+            log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", workflowId);
+        });
     }
 
     /**
@@ -120,11 +134,10 @@ public class DeleteService {
     public List<String> conductorOnlyWorkflows() {
         val conductorWorkflows = conductorService.completedWorkflowsOnConductor();
         log.info("Presenti {} workflow completati nel Conductor", conductorWorkflows.size());
-        val resultServiceWorkflowIds = resultServiceClient.list(Optional.empty()).getContent()
-                .stream().map(ResultWorkflowDto::getWorkflowId).collect(Collectors.toSet());
+        val workflowIdsToPreserve = workflowIdsToPreserve();
         val conductorOnly = conductorWorkflows.stream()
                 .map(WorkflowDto::getWorkflowId)
-                .filter(workflowId -> !resultServiceWorkflowIds.contains(workflowId))
+                .filter(workflowId -> !workflowIdsToPreserve.contains(workflowId))
                 .collect(Collectors.toList());
         log.info("Workflow orfani nel Conductor (non presenti nel result-service) = {}", conductorOnly);
         return conductorOnly;
@@ -136,5 +149,7 @@ public class DeleteService {
     @Async
     public void deleteConductorOnlyWorkflows(List<String> conductorOnlyWorkflowIds) {
         conductorOnlyWorkflowIds.forEach(conductorService::deleteWorkflow);
+        log.info("Cancellato dal conductor workflow con id = {}",
+                Joiner.on(",").join(conductorOnlyWorkflowIds));
     }
 }

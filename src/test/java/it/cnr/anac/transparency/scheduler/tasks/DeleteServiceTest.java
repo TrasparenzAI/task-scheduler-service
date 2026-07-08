@@ -182,7 +182,7 @@ class DeleteServiceTest {
 
     @Test
     void deleteExpiredWorkflowsOnConductor_callsDeleteOnlyForExpiredWorkflows() {
-        deleteService.deleteExpiredWorkflowsOnConductor(List.of("wf-oldest"));
+        deleteService.deleteExpiredWorkflowsOnConductor(List.of("wf-oldest"), 1);
 
         verify(conductorService).deleteWorkflow("wf-oldest");
         verifyNoMoreInteractions(conductorService);
@@ -198,9 +198,8 @@ class DeleteServiceTest {
                         conductorWorkflow("wf-2"),
                         conductorWorkflow("wf-3")));
         // result-service ha wf-1 e wf-2, manca wf-3
-        when(resultServiceClient.list(Optional.empty()))
-                .thenReturn(pageOf(List.of(
-                        resultWorkflow("wf-1", LocalDateTime.now()),
+        when(resultServiceClient.list(Optional.of(ResultWorkflowDto.WorkflowStatus.COMPLETED)))
+                .thenReturn(pageOf(List.of(resultWorkflow("wf-1", LocalDateTime.now()),
                         resultWorkflow("wf-2", LocalDateTime.now()))));
 
         List<String> conductorOnly = deleteService.conductorOnlyWorkflows();
@@ -212,7 +211,7 @@ class DeleteServiceTest {
     void conductorOnlyWorkflows_emptyWhenAllConductorWorkflowsAreInResultService() {
         when(conductorService.completedWorkflowsOnConductor())
                 .thenReturn(List.of(conductorWorkflow("wf-1")));
-        when(resultServiceClient.list(Optional.empty()))
+        when(resultServiceClient.list(Optional.of(ResultWorkflowDto.WorkflowStatus.COMPLETED)))
                 .thenReturn(pageOf(List.of(resultWorkflow("wf-1", LocalDateTime.now()))));
 
         List<String> conductorOnly = deleteService.conductorOnlyWorkflows();
@@ -224,7 +223,7 @@ class DeleteServiceTest {
     void conductorOnlyWorkflows_allOrphansWhenResultServiceIsEmpty() {
         when(conductorService.completedWorkflowsOnConductor())
                 .thenReturn(List.of(conductorWorkflow("wf-1"), conductorWorkflow("wf-2")));
-        when(resultServiceClient.list(Optional.empty()))
+        when(resultServiceClient.list(Optional.of(ResultWorkflowDto.WorkflowStatus.COMPLETED)))
                 .thenReturn(pageOf(List.of()));
 
         List<String> conductorOnly = deleteService.conductorOnlyWorkflows();
