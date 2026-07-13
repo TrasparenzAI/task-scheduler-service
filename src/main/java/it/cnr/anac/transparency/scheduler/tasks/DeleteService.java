@@ -125,10 +125,18 @@ public class DeleteService {
     @Async
     public void deleteExpiredWorkflowsOnResultService(List<String> expiredWorkflowIds, Integer deleteMax) {
         expiredWorkflowIds.stream().limit(deleteMax).forEach(workflowId -> {
-            resultServiceClient.deleteByWorkflow(workflowId);
-            log.info("Deleted results with workflowId = {} from result-service", workflowId);
-            resultServiceAggregatorService.deleteByWorkflow(workflowId);
-            log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", workflowId);
+            try {
+                resultServiceClient.deleteByWorkflow(workflowId);
+                log.info("Deleted results with workflowId = {} from result-service", workflowId);
+            } catch (Exception e) {
+                log.warn("Errore nella cancellazione dei risultati dal result-service per workflowId = {}", workflowId, e);
+            }
+            try {
+                resultServiceAggregatorService.deleteByWorkflow(workflowId);
+                log.info("Deleted aggregated results with workflowId = {} from result-aggregator-service", workflowId);
+            } catch (Exception e) {
+                log.warn("Errore nella cancellazione dei risultati aggregati dal result-aggregator-service per workflowId = {}", workflowId, e);
+            }
         });
     }
 
