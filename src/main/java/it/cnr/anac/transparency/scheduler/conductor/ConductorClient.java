@@ -37,6 +37,12 @@ public interface ConductorClient {
   @GetMapping("/crawler_amministrazione_trasparente/correlated/crawler_amministrazione_trasparente?includeClosed=true&includeTasks=false")
   List<WorkflowDto> allWorkflows();
 
+  /**
+   * Workflow non ancora terminati (in esecuzione o in pausa) con il correlationId indicato.
+   */
+  @GetMapping("/crawler_amministrazione_trasparente/correlated/{correlationId}?includeClosed=false&includeTasks=false")
+  List<WorkflowDto> runningWorkflows(@PathVariable("correlationId") String correlationId);
+
   @DeleteMapping("/{id}/remove?archiveWorkflow=false")
   void deleteWorkflow(@PathVariable("id") String id);
 
