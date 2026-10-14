@@ -29,6 +29,8 @@ jobs:
       - name: lowercase github.repository
         run: |
           echo "IMAGE_NAME=`echo ${{github.repository}} | tr '[:upper:]' '[:lower:]'`" >>${GITHUB_ENV}
+      - name: Set project version from tag
+        run: mvn --batch-mode versions:set -DnewVersion=${TAG_NAME#v} -DgenerateBackupPoms=false
       - name: Build Release with Maven
         run: mvn --batch-mode --update-snapshots clean compile jib:build
             -Djib.to.auth.username=${{ github.actor }}
